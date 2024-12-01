@@ -1,7 +1,41 @@
-- name: ping-pong
+- name: OSPF and GRE
   hosts: all
+  become: yes
   tasks:
-   - name: Ping my hosts
-     ansible.builtin.ping:
+    - name: install
+    yum:
+      name: frr
+      state: present
 
+    - name: start frr
+    systemd:
+      name: frr
+      state: started
+      enabled: yes
+
+    - name: ospf
+    lineinfile:
+      path: /etc/frr/frr.conf
+      line: "{{ item }}"
+      state: present
+    loop:
+      - '!OSPF Configurartion'
+      - 'router ospf'
+      - 'network 11.11.11.1/24 area 0'
+      - 'router-id ISP'
+    notify: restart frr
   
+    - name: gre
+    command: >
+      ip tunnel add gre1 mode gre remote 11.11.11.2 local 172.16.100.1
+      ip tunnel add gre2 mode gre remote 22.22.22.2 local 172.16.100.1
+    ignore_errors: yes
+    
+    -name: Bring up the GRE tunnel
+    command: >
+      ip link set gre1 up
+      ip link set gre2 up
+    ignore_errors: yes
+    - name: pong
+      command: iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+      ignore_errors: yes
