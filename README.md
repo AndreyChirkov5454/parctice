@@ -1,5 +1,5 @@
 # parctice
 
-For demo test I have been writing this scripts
+For demo test I have been writing these scripts
 
 creatinhvms.sh creates vms in vbox 
